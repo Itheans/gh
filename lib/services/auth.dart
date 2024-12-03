@@ -10,8 +10,13 @@ class AuthMethods {
     return await _auth.currentUser;
   }
 
-  Future SignOut() async {
-    await FirebaseAuth.instance.signOut();
+  Future<void> signOut() async {
+    try {
+      await _auth.signOut(); // เรียกใช้ Firebase Authentication เพื่อลงชื่อออก
+    } catch (e) {
+      print("Error signing out: $e");
+      rethrow; // ถ้ามีข้อผิดพลาดก็จะโยนข้อผิดพลาดออกไป
+    }
   }
 
   signInWithGoogle(BuildContext context) async {

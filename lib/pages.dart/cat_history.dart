@@ -26,6 +26,7 @@ class CatHistoryPage extends StatefulWidget {
 
 class _CatHistoryPageState extends State<CatHistoryPage> {
   List<Cat> cats = [];
+  List<Cat> filteredCats = [];
 
   @override
   void initState() {
@@ -40,6 +41,7 @@ class _CatHistoryPageState extends State<CatHistoryPage> {
           .listen((snapshot) {
         setState(() {
           cats = snapshot.docs.map((doc) => Cat.fromFirestore(doc)).toList();
+          filteredCats = cats;
         });
       });
     }
@@ -49,23 +51,24 @@ class _CatHistoryPageState extends State<CatHistoryPage> {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       try {
+        showLoadingDialog();
         await FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid)
             .collection('cats')
             .add(cat.toMap());
+        Navigator.pop(context); // Close loading dialog
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Cat added successfully')),
         );
         Navigator.pop(context);
       } catch (e) {
-        print('Error adding cat: $e');
+        Navigator.pop(context); // Close loading dialog
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to add cat')),
         );
       }
     } else {
-      print('User not logged in');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please login to add cats')),
       );
@@ -76,22 +79,34 @@ class _CatHistoryPageState extends State<CatHistoryPage> {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       try {
+        showLoadingDialog();
         await FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid)
             .collection('cats')
             .doc(cat.id)
             .update(cat.toMap());
+        Navigator.pop(context); // Close loading dialog
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Cat updated successfully')),
         );
       } catch (e) {
-        print('Error updating cat: $e');
+        Navigator.pop(context); // Close loading dialog
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to update cat')),
         );
       }
     }
+  }
+
+  void showLoadingDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return const Center(child: CircularProgressIndicator());
+      },
+    );
   }
 
   @override
@@ -112,26 +127,49 @@ class _CatHistoryPageState extends State<CatHistoryPage> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ListView.builder(
-          itemCount: cats.length,
-          itemBuilder: (context, index) {
-            final cat = cats[index];
-            return CatCard(
-              cat: cat,
-              onEdit: (updatedCat) {
-                showDialog(
-                  context: context,
-                  builder: (context) => AddCatDialog(
-                    cat: updatedCat,
-                    onAdd: updateCatInFirestore,
-                  ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              onChanged: (value) {
+                setState(() {
+                  filteredCats = cats
+                      .where((cat) =>
+                          cat.name.toLowerCase().contains(value.toLowerCase()))
+                      .toList();
+                });
+              },
+              decoration: InputDecoration(
+                labelText: 'Search by name',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: filteredCats.length,
+              itemBuilder: (context, index) {
+                final cat = filteredCats[index];
+                return CatCard(
+                  cat: cat,
+                  onEdit: (updatedCat) {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AddCatDialog(
+                        cat: updatedCat,
+                        onAdd: updateCatInFirestore,
+                      ),
+                    );
+                  },
                 );
               },
-            );
-          },
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -170,80 +208,6 @@ class Cat {
       'description': description,
       'imagePath': imagePath,
     };
-  }
-}
-
-class CatCard extends StatelessWidget {
-  final Cat cat;
-  final Function(Cat) onEdit;
-
-  const CatCard({Key? key, required this.cat, required this.onEdit})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final age = DateTime.now().difference(cat.birthDate).inDays ~/ 365;
-
-    return Card(
-      elevation: 5,
-      margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: cat.imagePath.startsWith('http')
-                  ? Image.network(
-                      cat.imagePath,
-                      width: 80,
-                      height: 80,
-                      fit: BoxFit.cover,
-                    )
-                  : Image.file(
-                      File(cat.imagePath),
-                      width: 80,
-                      height: 80,
-                      fit: BoxFit.cover,
-                    ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    cat.name,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Age: $age years',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    cat.description,
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                ],
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: () => onEdit(cat),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
 
@@ -296,13 +260,24 @@ class _AddCatDialogState extends State<AddCatDialog> {
           children: [
             TextField(
               controller: nameController,
-              decoration: const InputDecoration(labelText: 'Name'),
+              decoration: InputDecoration(
+                labelText: 'Name',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
             ),
+            const SizedBox(height: 10),
             TextField(
               controller: descriptionController,
-              decoration: const InputDecoration(labelText: 'Description'),
+              decoration: InputDecoration(
+                labelText: 'Description',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             GestureDetector(
               onTap: () async {
                 DateTime? selectedDate = await showDatePicker(
@@ -318,25 +293,39 @@ class _AddCatDialogState extends State<AddCatDialog> {
                 }
               },
               child: InputDecorator(
-                decoration: InputDecoration(labelText: 'Birth Date'),
+                decoration: InputDecoration(
+                  labelText: 'Birth Date',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
                 child: Text(
                   birthDate != null
                       ? DateFormat('yyyy-MM-dd').format(birthDate!)
                       : 'Select Date',
+                  style: const TextStyle(fontSize: 16),
                 ),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             GestureDetector(
               onTap: _pickImage,
-              child: imagePath == null
-                  ? const Text('Tap to select an image')
-                  : Image.file(
-                      File(imagePath!),
-                      width: 100,
-                      height: 100,
-                      fit: BoxFit.cover,
-                    ),
+              child: Container(
+                width: double.infinity,
+                height: 150,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: imagePath == null
+                    ? const Center(
+                        child: Text('Tap to select an image'),
+                      )
+                    : Image.file(
+                        File(imagePath!),
+                        fit: BoxFit.cover,
+                      ),
+              ),
             ),
           ],
         ),
@@ -346,28 +335,80 @@ class _AddCatDialogState extends State<AddCatDialog> {
           onPressed: () => Navigator.pop(context),
           child: const Text('Cancel'),
         ),
-        TextButton(
+        ElevatedButton(
           onPressed: () {
-            if (birthDate == null || imagePath == null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Please complete all fields'),
-                ),
+            if (nameController.text.isNotEmpty &&
+                descriptionController.text.isNotEmpty &&
+                birthDate != null &&
+                imagePath != null) {
+              final cat = Cat(
+                id: widget.cat?.id ?? '',
+                name: nameController.text,
+                description: descriptionController.text,
+                birthDate: birthDate!,
+                imagePath: imagePath!,
               );
-              return;
+              widget.onAdd(cat);
             }
-            final newCat = Cat(
-              id: widget.cat?.id ?? '',
-              name: nameController.text.trim(),
-              birthDate: birthDate!,
-              description: descriptionController.text.trim(),
-              imagePath: imagePath!,
-            );
-            widget.onAdd(newCat);
           },
           child: Text(widget.cat == null ? 'Add' : 'Update'),
         ),
       ],
+    );
+  }
+}
+
+class CatCard extends StatelessWidget {
+  final Cat cat;
+  final Function(Cat) onEdit;
+
+  const CatCard({Key? key, required this.cat, required this.onEdit})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final age = DateTime.now().difference(cat.birthDate).inDays ~/ 365;
+
+    return Card(
+      elevation: 5,
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: ListTile(
+          leading: cat.imagePath.startsWith('http')
+              ? Image.network(
+                  cat.imagePath,
+                  width: 80,
+                  height: 80,
+                  fit: BoxFit.cover,
+                )
+              : Image.file(
+                  File(cat.imagePath),
+                  width: 80,
+                  height: 80,
+                  fit: BoxFit.cover,
+                ),
+          title: Text(
+            cat.name,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Age: $age years'),
+              Text(cat.description),
+            ],
+          ),
+          trailing: IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () => onEdit(cat),
+          ),
+        ),
+      ),
     );
   }
 }

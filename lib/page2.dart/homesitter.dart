@@ -1,11 +1,109 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:myproject/pages.dart/cat_history.dart';
 
-class MyApp extends StatelessWidget {
+class SitterHomePage extends StatelessWidget {
+  final CollectionReference cats =
+      FirebaseFirestore.instance.collection('cats');
+
+  Stream<QuerySnapshot> getCats() {
+    return cats.where('status', isEqualTo: 'available').snapshots();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: HomePage(),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('บ้านที่ดูแล'),
+        backgroundColor: Colors.white,
+        iconTheme: IconThemeData(color: Colors.black),
+        elevation: 0,
+      ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: cats.where('status', isEqualTo: 'available').snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return Center(child: Text('ไม่มีแมวในระบบ'));
+          }
+
+          final data = snapshot.data!.docs;
+
+          return ListView.builder(
+            itemCount: data.length,
+            itemBuilder: (context, index) {
+              final cat = data[index].data() as Map<String, dynamic>;
+              return ListTile(
+                leading: CircleAvatar(
+                  backgroundImage: NetworkImage(cat['image']),
+                ),
+                title: Text(cat['name']),
+                subtitle: Text('เจ้าของ: ${cat['ownerID']}'),
+                onTap: () {
+                  // เปิดหน้า Cat Details
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          CatDetailsPage(catID: data[index].id),
+                    ),
+                  );
+                },
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class CatDetailsPage extends StatelessWidget {
+  final String catID;
+
+  CatDetailsPage({required this.catID});
+
+  @override
+  Widget build(BuildContext context) {
+    final DocumentReference catDoc =
+        FirebaseFirestore.instance.collection('cats').doc(catID);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('รายละเอียดแมว'),
+      ),
+      body: FutureBuilder<DocumentSnapshot>(
+        future: catDoc.get(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+          if (!snapshot.hasData || !snapshot.data!.exists) {
+            return Center(child: Text('ไม่พบข้อมูล'));
+          }
+
+          final cat = snapshot.data!.data() as Map<String, dynamic>;
+
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Image.network(cat['image']),
+                SizedBox(height: 16),
+                Text(
+                  cat['name'],
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                Text('เจ้าของ: ${cat['ownerID']}'),
+                Text('สถานะ: ${cat['status']}'),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }

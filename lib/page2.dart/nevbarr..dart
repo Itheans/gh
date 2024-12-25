@@ -1,9 +1,9 @@
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:myproject/page2.dart/chat2.dart';
 import 'package:myproject/page2.dart/homesitter.dart';
-import 'package:myproject/pages.dart/chat.dart';
-import 'package:myproject/pages.dart/payment.dart';
-import 'package:myproject/pages.dart/profile.dart';
+import 'package:myproject/page2.dart/payment2.dart';
+import 'package:myproject/page2.dart/profilesitter.dart';
 
 class Nevbarr extends StatefulWidget {
   const Nevbarr({super.key});
@@ -16,17 +16,17 @@ class _MyWidgetState extends State<Nevbarr> {
   int currentTapIndex = 0;
   late List<Widget> pages;
   late Widget currentPage;
-  late HomePage homePage;
-  late Chat chat;
-  late Profile profile;
-  late Payment payment;
+  late Home2 homePage;
+  late Chat2 chat;
+  late ProfileSitter profile;
+  late Payment2 payment;
 
   @override
   void initState() {
-    homePage = HomePage();
-    chat = const Chat();
-    profile = const Profile();
-    payment = const Payment();
+    homePage = Home2();
+    chat = const Chat2();
+    profile = const ProfileSitter();
+    payment = const Payment2();
     pages = [homePage, chat, payment, profile];
     super.initState();
   }

@@ -6,10 +6,12 @@ import 'package:google_sign_in/google_sign_in.dart';
 class AuthMethods {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  // ฟังก์ชันเพื่อตรวจสอบผู้ใช้ปัจจุบัน
   getCurrentUser() async {
     return await _auth.currentUser;
   }
 
+  // ฟังก์ชันสำหรับการออกจากระบบ
   Future<void> signOut() async {
     try {
       await _auth.signOut(); // เรียกใช้ Firebase Authentication เพื่อลงชื่อออก
@@ -19,35 +21,55 @@ class AuthMethods {
     }
   }
 
+  // ฟังก์ชันสำหรับการลงชื่อเข้าใช้ด้วย Google
   signInWithGoogle(BuildContext context) async {
-    final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
-    final GoogleSignIn googleSignIn = GoogleSignIn();
+    try {
+      final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+      final GoogleSignIn googleSignIn = GoogleSignIn();
 
-    final GoogleSignInAccount? googleSignInAccount =
-        await googleSignIn.signIn();
-    final GoogleSignInAuthentication? googleSignInAuthentication =
-        await googleSignInAccount?.authentication;
+      final GoogleSignInAccount? googleSignInAccount =
+          await googleSignIn.signIn();
+      if (googleSignInAccount == null) {
+        // ผู้ใช้ยกเลิกการลงชื่อเข้าใช้
+        return;
+      }
 
-    final AuthCredential credential = GoogleAuthProvider.credential(
-      idToken: googleSignInAuthentication?.idToken,
-      accessToken: googleSignInAuthentication?.accessToken,
-    );
+      final GoogleSignInAuthentication? googleSignInAuthentication =
+          await googleSignInAccount.authentication;
+      if (googleSignInAuthentication == null) {
+        // การตรวจสอบการยืนยันล้มเหลว
+        return;
+      }
 
-    UserCredential result = await firebaseAuth.signInWithCredential(credential);
-    User? userdetails = result.user;
-    if (result != null) {
-      Map<String, dynamic> userInfoMap = {
-        "email": userdetails!.email,
-        "username": userdetails.displayName,
-        "imgUrl": userdetails.photoURL,
-        "id": userdetails.uid,
-      };
-      await DatabaseMethods()
-          .addUser(userdetails.uid, userInfoMap)
-          .then((value) {
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => BottomNav()));
-      });
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        idToken: googleSignInAuthentication.idToken,
+        accessToken: googleSignInAuthentication.accessToken,
+      );
+
+      // การลงชื่อเข้าใช้ด้วย Google
+      UserCredential result =
+          await firebaseAuth.signInWithCredential(credential);
+      User? userdetails = result.user;
+
+      if (userdetails != null) {
+        Map<String, dynamic> userInfoMap = {
+          "email": userdetails.email,
+          "username": userdetails.displayName,
+          "imgUrl": userdetails.photoURL,
+          "id": userdetails.uid,
+        };
+
+        // เพิ่มข้อมูลผู้ใช้ลงใน Firestore
+        await DatabaseMethods()
+            .addUser(userdetails.uid, userInfoMap)
+            .then((value) {
+          Navigator.pushReplacement(
+              context, MaterialPageRoute(builder: (context) => BottomNav()));
+        });
+      }
+    } catch (e) {
+      print("Error signing in with Google: $e");
+      throw Exception("Error signing in with Google: $e");
     }
   }
 }
@@ -55,6 +77,7 @@ class AuthMethods {
 class DatabaseMethods {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  // ฟังก์ชันสำหรับการเพิ่มข้อมูลผู้ใช้ลงใน Firestore
   Future<void> addUser(String uid, Map<String, dynamic> userInfo) async {
     try {
       await _firestore.collection('users').doc(uid).set(userInfo);
@@ -72,6 +95,7 @@ class BottomNav extends StatefulWidget {
 class _BottomNavState extends State<BottomNav> {
   int _selectedIndex = 0;
 
+  // ฟังก์ชันสำหรับการจัดการการเลือกใน Bottom Navigation
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -110,8 +134,16 @@ class SignUpPage extends StatelessWidget {
       appBar: AppBar(title: Text('Sign Up')),
       body: Center(
         child: ElevatedButton(
-          onPressed: () {
-            AuthMethods().signInWithGoogle(context);
+          onPressed: () async {
+            try {
+              // เรียกใช้ฟังก์ชันลงชื่อเข้าใช้ด้วย Google
+              await AuthMethods().signInWithGoogle(context);
+            } catch (e) {
+              // แสดงข้อความผิดพลาดในกรณีที่เกิดข้อผิดพลาด
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Error: $e')),
+              );
+            }
           },
           child: Text('Sign Up with Google'),
         ),

@@ -1,212 +1,70 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:myproject/pages.dart/cat_history.dart';
+import 'package:myproject/Catpage.dart/cat_history.dart';
+import 'package:myproject/page2.dart/_CatSearchPageState.dart';
+import 'package:myproject/pages.dart/details.dart';
 
-class SitterHomePage extends StatelessWidget {
-  final CollectionReference cats =
-      FirebaseFirestore.instance.collection('cats');
-
-  Stream<QuerySnapshot> getCats() {
-    return cats.where('status', isEqualTo: 'available').snapshots();
-  }
+class Home2 extends StatefulWidget {
+  const Home2({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('บ้านที่ดูแล'),
-        backgroundColor: Colors.white,
-        iconTheme: IconThemeData(color: Colors.black),
-        elevation: 0,
-      ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: cats.where('status', isEqualTo: 'available').snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          }
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(child: Text('ไม่มีแมวในระบบ'));
-          }
-
-          final data = snapshot.data!.docs;
-
-          return ListView.builder(
-            itemCount: data.length,
-            itemBuilder: (context, index) {
-              final cat = data[index].data() as Map<String, dynamic>;
-              return ListTile(
-                leading: CircleAvatar(
-                  backgroundImage: NetworkImage(cat['image']),
-                ),
-                title: Text(cat['name']),
-                subtitle: Text('เจ้าของ: ${cat['ownerID']}'),
-                onTap: () {
-                  // เปิดหน้า Cat Details
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          CatDetailsPage(catID: data[index].id),
-                    ),
-                  );
-                },
-              );
-            },
-          );
-        },
-      ),
-    );
-  }
+  State<Home2> createState() => _Home2State();
 }
 
-class CatDetailsPage extends StatelessWidget {
-  final String catID;
-
-  CatDetailsPage({required this.catID});
+class _Home2State extends State<Home2> {
+  bool cat = false, paw = false, backpack = false, ball = false;
 
   @override
   Widget build(BuildContext context) {
-    final DocumentReference catDoc =
-        FirebaseFirestore.instance.collection('cats').doc(catID);
-
     return Scaffold(
+      backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        title: Text('รายละเอียดแมว'),
-      ),
-      body: FutureBuilder<DocumentSnapshot>(
-        future: catDoc.get(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          }
-          if (!snapshot.hasData || !snapshot.data!.exists) {
-            return Center(child: Text('ไม่พบข้อมูล'));
-          }
-
-          final cat = snapshot.data!.data() as Map<String, dynamic>;
-
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Image.network(cat['image']),
-                SizedBox(height: 16),
-                Text(
-                  cat['name'],
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-                Text('เจ้าของ: ${cat['ownerID']}'),
-                Text('สถานะ: ${cat['status']}'),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class HomePage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: Text(
-          'บ้านที่ดูแล',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600),
+        title: const Text(
+          'Cat Sitter',
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: IconThemeData(color: Colors.black),
+        backgroundColor: Colors.teal,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications),
+            onPressed: () {},
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Section: Caretakers
-            Text(
-              "บ้านที่ดูแล",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 16),
-            Expanded(
-              child: ListView(
-                children: [
-                  _buildMinimalTile('คุณเป็ด', 'images/duck.jpg', context),
-                  _buildMinimalTile(
-                      'คุณเพนกวิน', 'images/penguin.jpg', context),
-                ],
-              ),
-            ),
-            SizedBox(height: 24),
-            Divider(color: Colors.grey[300], thickness: 1),
-            SizedBox(height: 16),
-
-            // Section: Reviews
-            Text(
-              "รีวิว",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            Row(
-              children: [
-                Text(
-                  "4.5",
-                  style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(width: 8),
-                Icon(Icons.star, color: Colors.amber, size: 48),
-              ],
-            ),
-            SizedBox(height: 10),
-            _buildReviewMinimalRow('คุณเพนกวิน', 5, 'images/penguin.jpg'),
-            _buildReviewMinimalRow('คุณเป็ด', 4, 'images/duck.jpg'),
-            _buildReviewMinimalRow('คุณแมว', 3, 'images/cat1.png'),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Minimal Caretaker Tile
-  Widget _buildMinimalTile(
-      String name, String imagePath, BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: GestureDetector(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const CatHistoryPage(),
-            ),
-          );
-        },
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.grey[100],
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                radius: 30,
-                backgroundImage: AssetImage(imagePath),
+              const Text(
+                'Welcome Back!',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-              SizedBox(width: 16),
-              Text(
-                name,
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+              const SizedBox(height: 10),
+              const Text(
+                'Choose a task to start:',
+                style: TextStyle(fontSize: 16, color: Colors.grey),
               ),
-              Spacer(),
-              Icon(Icons.arrow_forward_ios,
-                  color: const Color.fromARGB(255, 198, 196, 196), size: 16),
+              const SizedBox(height: 20),
+              _buildTaskSelector(),
+              const SizedBox(height: 20),
+              
+              // เพิ่มปุ่มเพื่อไปที่หน้า CatSearchPage
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const CatSearchPage()),
+                  );
+                },
+                child: const Text('Search Cats'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.teal, // สีของปุ่ม
+                ),
+              ),
+              
+              const SizedBox(height: 20),
+              _buildCatCards(),
             ],
           ),
         ),
@@ -214,69 +72,116 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // Minimal Review Row
-  Widget _buildReviewMinimalRow(String name, int stars, String imagePath) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 20,
-            backgroundImage: AssetImage(imagePath),
+  // ฟังก์ชั่นที่ใช้เลือก task
+  Widget _buildTaskSelector() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _buildTaskItem('images/cat.png', cat, () {
+          setState(() {
+            cat = true;
+            paw = false;
+            backpack = false;
+            ball = false;
+          });
+        }),
+        _buildTaskItem('images/paw.png', paw, () {
+          setState(() {
+            cat = false;
+            paw = true;
+            backpack = false;
+            ball = false;
+          });
+        }),
+        _buildTaskItem('images/backpack.png', backpack, () {
+          setState(() {
+            cat = false;
+            paw = false;
+            backpack = true;
+            ball = false;
+          });
+        }),
+        _buildTaskItem('images/ball.png', ball, () {
+          setState(() {
+            cat = false;
+            paw = false;
+            backpack = false;
+            ball = true;
+          });
+        }),
+      ],
+    );
+  }
+
+  Widget _buildTaskItem(String imagePath, bool isSelected, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Material(
+        elevation: 5,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: isSelected ? Colors.black : Colors.white,
+            borderRadius: BorderRadius.circular(10),
           ),
-          SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                ),
-                SizedBox(height: 15),
-                Row(
-                  children: List.generate(
-                    stars,
-                    (index) => Icon(Icons.star, color: Colors.amber, size: 16),
-                  ),
-                ),
-              ],
-            ),
+          child: Image.asset(
+            imagePath,
+            height: 50,
+            width: 50,
+            fit: BoxFit.cover,
+            color: isSelected ? Colors.white : Colors.black,
           ),
-        ],
+        ),
       ),
     );
   }
-}
 
-class CaretakerDetailsPage extends StatelessWidget {
-  final String name;
-  final String imagePath;
-
-  CaretakerDetailsPage({required this.name, required this.imagePath});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(name),
-        backgroundColor: Colors.white,
-        iconTheme: IconThemeData(color: Colors.black),
-        elevation: 0,
+  Widget _buildCatCards() {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.8,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
       ),
-      body: Center(
-        child: Column(
-          children: [
-            Image.asset(imagePath),
-            SizedBox(height: 20),
-            Text(
-              name,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+      itemCount: 4,
+      itemBuilder: (context, index) {
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const Details()),
+            );
+          },
+          child: Material(
+            elevation: 5,
+            borderRadius: BorderRadius.circular(15),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Column(
+                children: [
+                  Image.asset('images/cat.png', height: 100, fit: BoxFit.cover),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'John Terry House',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const Text(
+                    'Total Cats: 5',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ],
+              ),
             ),
-            // Add more details here
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

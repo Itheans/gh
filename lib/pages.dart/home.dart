@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:myproject/pages.dart/cat_history.dart';
+import 'package:myproject/Catpage.dart/cat_history.dart';
 import 'package:myproject/pages.dart/details.dart';
 import 'package:myproject/widget/widget_support.dart';
 

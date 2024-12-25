@@ -5,14 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class Profile extends StatefulWidget {
-  const Profile({super.key});
+class ProfileSitter extends StatefulWidget {
+  const ProfileSitter({super.key});
 
   @override
-  State<Profile> createState() => _ProfileState();
+  State<ProfileSitter> createState() => _ProfileState();
 }
 
-class _ProfileState extends State<Profile> {
+class _ProfileState extends State<ProfileSitter> {
   String? profile, name, email, phone;
   bool isLoading = true;
   final ImagePicker _picker = ImagePicker();

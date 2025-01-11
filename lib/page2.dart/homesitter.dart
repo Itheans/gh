@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:myproject/Catpage.dart/cat_history.dart';
 import 'package:myproject/page2.dart/_CatSearchPageState.dart';
+import 'package:myproject/page2.dart/showreviwe.dart';
 import 'package:myproject/pages.dart/details.dart';
 
 class Home2 extends StatefulWidget {
@@ -48,13 +49,14 @@ class _Home2State extends State<Home2> {
               const SizedBox(height: 20),
               _buildTaskSelector(),
               const SizedBox(height: 20),
-              
+
               // เพิ่มปุ่มเพื่อไปที่หน้า CatSearchPage
               ElevatedButton(
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const CatSearchPage()),
+                    MaterialPageRoute(
+                        builder: (context) => const CatSearchPage()),
                   );
                 },
                 child: const Text('Search Cats'),
@@ -62,7 +64,7 @@ class _Home2State extends State<Home2> {
                   backgroundColor: Colors.teal, // สีของปุ่ม
                 ),
               ),
-              
+
               const SizedBox(height: 20),
               _buildCatCards(),
             ],
@@ -84,6 +86,10 @@ class _Home2State extends State<Home2> {
             backpack = false;
             ball = false;
           });
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => CatSearchPage()),
+          );
         }),
         _buildTaskItem('images/paw.png', paw, () {
           setState(() {
@@ -92,6 +98,10 @@ class _Home2State extends State<Home2> {
             backpack = false;
             ball = false;
           });
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => SitterReviewsPage()),
+          );
         }),
         _buildTaskItem('images/backpack.png', backpack, () {
           setState(() {

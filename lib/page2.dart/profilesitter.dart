@@ -9,12 +9,12 @@ class ProfileSitter extends StatefulWidget {
   const ProfileSitter({super.key});
 
   @override
-  State<ProfileSitter> createState() => _ProfileState();
+  State<ProfileSitter> createState() => _ProfileSitterState();
 }
 
-class _ProfileState extends State<ProfileSitter> {
+class _ProfileSitterState extends State<ProfileSitter> {
   String? profile, name, email, phone;
-  bool isLoading = true;
+  bool isLoading = true; // ตัวแปร isLoading ที่เพิ่มเข้ามา
   final ImagePicker _picker = ImagePicker();
   File? selectedImage;
 
@@ -23,7 +23,7 @@ class _ProfileState extends State<ProfileSitter> {
   final TextEditingController phoneController = TextEditingController();
 
   Future<void> getUserInfo() async {
-    setState(() => isLoading = true);
+    setState(() => isLoading = true); // เริ่มโหลดข้อมูล
     try {
       User? user = FirebaseAuth.instance.currentUser;
       if (user != null) {
@@ -49,7 +49,7 @@ class _ProfileState extends State<ProfileSitter> {
     } catch (e) {
       print("Error fetching user info: $e");
     }
-    setState(() => isLoading = false);
+    setState(() => isLoading = false); // หยุดโหลดข้อมูล
   }
 
   Future<void> getImage() async {
@@ -124,13 +124,13 @@ class _ProfileState extends State<ProfileSitter> {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {
-              FirebaseAuth.instance.signOut();
+              _showLogoutDialog(context);
             },
           ),
         ],
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator()) // แสดงวงล้อโหลด
           : SingleChildScrollView(
               child: Column(
                 children: [
@@ -269,6 +269,32 @@ class _ProfileState extends State<ProfileSitter> {
           ],
         );
       },
+    );
+  }
+
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to logout?'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // ปิด Dialog
+            },
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              FirebaseAuth.instance.signOut();
+              Navigator.pop(context); // ปิด Dialog
+              Navigator.pushReplacementNamed(context, '/login'); // ไปหน้า Login
+            },
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
     );
   }
 }

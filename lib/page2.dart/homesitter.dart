@@ -1,5 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:myproject/Catpage.dart/cat_history.dart';
 import 'package:myproject/page2.dart/_CatSearchPageState.dart';
 import 'package:myproject/page2.dart/showreviwe.dart';
 import 'package:myproject/pages.dart/details.dart';
@@ -13,6 +13,21 @@ class Home2 extends StatefulWidget {
 
 class _Home2State extends State<Home2> {
   bool cat = false, paw = false, backpack = false, ball = false;
+
+  Future<List<Map<String, dynamic>>> _fetchAdoptedCats() async {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc('wVmQtidCCcRFbGevZcICnre9tPo2') // ใช้ user UID
+          .collection('cats')
+          .get();
+
+      return snapshot.docs.map((doc) => doc.data()).toList();
+    } catch (e) {
+      print('Error fetching adopted cats: $e');
+      return [];
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,24 +64,21 @@ class _Home2State extends State<Home2> {
               const SizedBox(height: 20),
               _buildTaskSelector(),
               const SizedBox(height: 20),
-
-              // เพิ่มปุ่มเพื่อไปที่หน้า CatSearchPage
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const CatSearchPage()),
-                  );
+              FutureBuilder<List<Map<String, dynamic>>>(
+                // ดึงข้อมูลแมวที่เพิ่มใหม่
+                future: _fetchAdoptedCats(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return const Center(child: Text('Error loading cats'));
+                  } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+                    return _buildCatCards(snapshot.data!);
+                  } else {
+                    return const Center(child: Text('No adopted cats found'));
+                  }
                 },
-                child: const Text('Search Cats'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal, // สีของปุ่ม
-                ),
               ),
-
-              const SizedBox(height: 20),
-              _buildCatCards(),
             ],
           ),
         ),
@@ -74,7 +86,6 @@ class _Home2State extends State<Home2> {
     );
   }
 
-  // ฟังก์ชั่นที่ใช้เลือก task
   Widget _buildTaskSelector() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -88,7 +99,10 @@ class _Home2State extends State<Home2> {
           });
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => CatSearchPage()),
+            MaterialPageRoute(
+              builder: (context) =>
+                  CatSearchPage(), // เปลี่ยนหน้าไป CatSearchPage
+            ),
           );
         }),
         _buildTaskItem('images/paw.png', paw, () {
@@ -100,7 +114,9 @@ class _Home2State extends State<Home2> {
           });
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => SitterReviewsPage()),
+            MaterialPageRoute(
+              builder: (context) => SitterReviewsPage(),
+            ),
           );
         }),
         _buildTaskItem('images/backpack.png', backpack, () {
@@ -147,7 +163,7 @@ class _Home2State extends State<Home2> {
     );
   }
 
-  Widget _buildCatCards() {
+  Widget _buildCatCards(List<Map<String, dynamic>> catData) {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -157,13 +173,15 @@ class _Home2State extends State<Home2> {
         crossAxisSpacing: 10,
         mainAxisSpacing: 10,
       ),
-      itemCount: 4,
+      itemCount: catData.length,
       itemBuilder: (context, index) {
+        final cat = catData[index];
         return GestureDetector(
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const Details()),
+              MaterialPageRoute(
+                  builder: (context) => const Details()), // เปิดหน้า Details
             );
           },
           child: Material(
@@ -176,15 +194,22 @@ class _Home2State extends State<Home2> {
               ),
               child: Column(
                 children: [
-                  Image.asset('images/cat.png', height: 100, fit: BoxFit.cover),
+                  cat['imagePath'] != null && cat['imagePath'].isNotEmpty
+                      ? Image.network(
+                          cat['imagePath'],
+                          height: 100,
+                          fit: BoxFit.cover,
+                        )
+                      : Image.asset('images/cat.png',
+                          height: 100, fit: BoxFit.cover),
                   const SizedBox(height: 10),
-                  const Text(
-                    'John Terry House',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  Text(
+                    cat['name'] ?? 'Unknown Cat',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  const Text(
-                    'Total Cats: 5',
-                    style: TextStyle(color: Colors.grey),
+                  Text(
+                    cat['breed'] ?? 'Unknown Breed',
+                    style: const TextStyle(color: Colors.grey),
                   ),
                 ],
               ),

@@ -76,7 +76,7 @@ class DatabaseMethods {
         .collection("chatrooms")
         .doc(chatRoomId)
         .collection("chats")
-        .orderBy('time', descending: true)
+        .orderBy("time", descending: true)
         .snapshots();
   }
 
@@ -89,6 +89,7 @@ class DatabaseMethods {
 
   Future<Stream<QuerySnapshot>> getChatRooms() async {
     String? myUsername = await SharedPreferenceHelper().getUserName();
+    print(myUsername);
     return FirebaseFirestore.instance
         .collection("chatrooms")
         .orderBy("time", descending: true)

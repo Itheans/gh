@@ -37,7 +37,8 @@ class _ReviewsPageState extends State<ReviewsPage> {
       // เพิ่มข้อมูลรีวิวใน Firestore
       await FirebaseFirestore.instance.collection('reviews').add({
         'itemId': widget.itemId,
-        'sitterId': _sitterId ?? 'unknown', // ใช้ sitterId ถ้ามี
+        'sitterId':
+            _sitterId ?? 'qMiu4Jh11Mbj5vzV3YEi23qp0Kv1', // ใช้ sitterId ถ้ามี
         'userId': currentUser.uid,
         'rating': _rating,
         'comment': _commentController.text,

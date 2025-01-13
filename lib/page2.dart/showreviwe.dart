@@ -57,48 +57,51 @@ class SitterReviewsPage extends StatelessWidget {
               SizedBox(height: 20),
               // ส่วนหัวคะแนนเฉลี่ย
               Container(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                margin: const EdgeInsets.symmetric(
+                    horizontal: 16), // ปรับระยะขอบซ้ายขวาที่นี่
+                padding: const EdgeInsets.symmetric(
+                  vertical: 20, // ระยะขอบด้านบน-ล่าง
+                ),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [
-                      Color(0xFF8E2DE2),
-                      Color(0xFF4A00E0)
-                    ], // สีม่วงสดใส
+                    colors: [Color(0xFF8E2DE2), Color(0xFF4A00E0)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(30), // ทำให้เป็นวงรี
+                  borderRadius: BorderRadius.circular(30),
                 ),
                 child: Column(
                   children: [
                     Text(
                       'Average Rating',
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 22, // ลดขนาดฟอนต์
                         fontWeight: FontWeight.bold,
                         color: Colors.white.withOpacity(0.9),
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8), // ลดขนาดระยะห่าง
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.star, color: Colors.amberAccent, size: 40.0),
-                        const SizedBox(width: 8),
+                        Icon(Icons.star,
+                            color: Colors.amberAccent,
+                            size: 30.0), // ปรับขนาดไอคอน
+                        const SizedBox(
+                            width: 6), // ปรับระยะห่างระหว่างไอคอนกับตัวเลข
                         Text(
                           averageRating.toStringAsFixed(1),
                           style: const TextStyle(
-                            fontSize: 36,
+                            fontSize: 30, // ขนาดฟอนต์ตัวเลข
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         Text(
                           '(${reviews.length} reviews)',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 14, // ลดขนาดฟอนต์ของจำนวนรีวิว
                             color: Colors.white.withOpacity(0.8),
                           ),
                         ),
@@ -140,9 +143,10 @@ class SitterReviewsPage extends StatelessWidget {
 
                         return Card(
                           margin: const EdgeInsets.symmetric(vertical: 8.0),
-                          elevation: 3,
+                          elevation: 10, // เพิ่มความชัดเจนของแรเงา
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius:
+                                BorderRadius.circular(18), // ขอบโค้งสวยงาม
                           ),
                           color: Colors.white,
                           child: Padding(
@@ -152,8 +156,11 @@ class SitterReviewsPage extends StatelessWidget {
                               children: [
                                 Row(
                                   children: [
-                                    Icon(Icons.star,
-                                        color: Colors.amberAccent, size: 24.0),
+                                    Icon(
+                                      Icons.star,
+                                      color: Colors.amberAccent,
+                                      size: 24.0,
+                                    ),
                                     const SizedBox(width: 8),
                                     Text(
                                       review['rating'].toString(),
@@ -174,18 +181,19 @@ class SitterReviewsPage extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 10),
                                 Text(
-                                  'By: $userName',
+                                  'Date: ${(review['timestamp'] as Timestamp).toDate()}',
                                   style: const TextStyle(
                                     fontSize: 14,
                                     color: Colors.grey,
                                   ),
                                 ),
-                                const SizedBox(height: 5),
+                                const SizedBox(height: 10),
+                                // แสดงชื่อผู้ใช้
                                 Text(
-                                  'Date: ${(review['timestamp'] as Timestamp).toDate()}',
+                                  'Reviewed by: $userName',
                                   style: const TextStyle(
                                     fontSize: 14,
-                                    color: Colors.grey,
+                                    color: Colors.black54,
                                   ),
                                 ),
                               ],

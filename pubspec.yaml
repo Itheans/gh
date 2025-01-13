@@ -49,6 +49,7 @@ dependencies:
   path_provider: ^2.0.14
   firebase_storage:
   flutter_rating_bar:
+<<<<<<< HEAD
   location:
   url_launcher:
   geolocator:
@@ -59,6 +60,8 @@ dependencies:
   
 
   
+=======
+>>>>>>> 419fe520e909880ef96295eff0636064c1a29ac4
 
 dev_dependencies:
   flutter_test:

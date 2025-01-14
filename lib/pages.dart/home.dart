@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:myproject/Catpage.dart/cat_history.dart';
 import 'package:myproject/pages.dart/details.dart';
+<<<<<<< HEAD
 import 'package:myproject/pages.dart/matching/matching.dart';
+=======
+<<<<<<< HEAD
+import 'package:myproject/pages.dart/matching/matching.dart';
+=======
+>>>>>>> 419fe520e909880ef96295eff0636064c1a29ac4
+>>>>>>> 81802b2bcfe84fce0b4dea08f18b65b180ef3a3d
 import 'package:myproject/pages.dart/reviwe.dart';
 import 'package:myproject/widget/widget_support.dart';
 
@@ -175,8 +182,18 @@ class _MyWidgetState extends State<Home> {
             Navigator.push(
               context,
               MaterialPageRoute(
+<<<<<<< HEAD
                 builder: (context) => const ReviewsPage(
                     itemId: 'some_item_id'), // แก้ไขโดยการส่ง itemId
+=======
+<<<<<<< HEAD
+                builder: (context) => const ReviewsPage(
+                    itemId: 'some_item_id'), // แก้ไขโดยการส่ง itemId
+=======
+                builder: (context) =>
+                    const ReviewsPage(itemId: 'some_item_id'), // แก้ไขโดยการส่ง itemId
+>>>>>>> 419fe520e909880ef96295eff0636064c1a29ac4
+>>>>>>> 81802b2bcfe84fce0b4dea08f18b65b180ef3a3d
               ),
             );
           },

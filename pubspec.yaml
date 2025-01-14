@@ -49,6 +49,10 @@ dependencies:
   path_provider: ^2.0.14
   firebase_storage:
   flutter_rating_bar:
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 81802b2bcfe84fce0b4dea08f18b65b180ef3a3d
   location:
   url_launcher:
   geolocator:
@@ -56,9 +60,16 @@ dependencies:
   cached_network_image:
   geocoding:
   calendar_date_picker2:
+<<<<<<< HEAD
+  
+
+=======
+>>>>>>> 81802b2bcfe84fce0b4dea08f18b65b180ef3a3d
   
 
   
+=======
+>>>>>>> 419fe520e909880ef96295eff0636064c1a29ac4
 
 dev_dependencies:
   flutter_test:

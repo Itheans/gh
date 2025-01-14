@@ -9,19 +9,19 @@ class SharedPreferenceHelper {
   static String roleKey = 'USERROLEKEY'; // Added missing role key
 
   // Save user data to SharedPreferences
-  Future<bool> saveUserId(String getuserId) async {
+  Future<bool> saveUserId(String getUserId) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.setString(userIdKey, getuserId);
-  }
-
-  Future<bool> saveUserName(String getuserName) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.setString(userNameKey, getuserName);
+    return prefs.setString(userIdKey, getUserId);
   }
 
   Future<bool> saveUserEmail(String getUserEmail) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.setString(userEmailKey, getUserEmail);
+  }
+
+  Future<bool> saveUserName(String getUserName) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.setString(userNameKey, getUserName);
   }
 
   Future<bool> saveUserPic(String getUserPic) async {

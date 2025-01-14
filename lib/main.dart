@@ -13,6 +13,7 @@ import 'package:myproject/pages.dart/login.dart';
 import 'package:myproject/pages.dart/onboard.dart';
 import 'package:myproject/pages.dart/sigup.dart';
 import 'package:myproject/services/auth.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,11 +22,20 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en', 'US'),
+        Locale('th', 'TH'),
+      ],
       debugShowCheckedModeBanner: false,
       home: LogIn(),
     );

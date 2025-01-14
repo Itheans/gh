@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:myproject/pages.dart/location/location.dart';
 
 class Profile extends StatefulWidget {
   const Profile({super.key});
@@ -13,7 +14,7 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
-  String? profile, name, email, phone;
+  String? profile, name, email, phone, location;
   bool isLoading = true;
   final ImagePicker _picker = ImagePicker();
   File? selectedImage;
@@ -21,6 +22,7 @@ class _ProfileState extends State<Profile> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
+  final TextEditingController locationController = TextEditingController();
 
   Future<void> getUserInfo() async {
     setState(() => isLoading = true);
@@ -39,11 +41,13 @@ class _ProfileState extends State<Profile> {
           name = userData?['name'] ?? user.displayName ?? 'No name';
           email = userData?['email'] ?? user.email ?? 'No email';
           phone = userData?['phone'] ?? 'No phone';
+          location = userData?['location'] ?? 'No location';
           profile = userData?['profilePic'] ?? user.photoURL;
 
           nameController.text = name ?? '';
           emailController.text = email ?? '';
           phoneController.text = phone ?? '';
+          locationController.text = location ?? '';
         });
       }
     } catch (e) {
@@ -95,12 +99,14 @@ class _ProfileState extends State<Profile> {
         'name': nameController.text,
         'email': emailController.text,
         'phone': phoneController.text,
+        'location': locationController.text,
       });
 
       setState(() {
         name = nameController.text;
         email = emailController.text;
         phone = phoneController.text;
+        location = locationController.text;
       });
 
       print("Profile updated successfully.");
@@ -174,6 +180,8 @@ class _ProfileState extends State<Profile> {
                       'E-mail', email ?? 'No email', Icons.mail),
                   buildProfileInfoRow(
                       'Phone', phone ?? 'No phone', Icons.phone),
+                  buildProfileInfoRow(
+                      'Location', location ?? 'No location', Icons.location_on),
                   const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: updateProfile,
@@ -186,54 +194,71 @@ class _ProfileState extends State<Profile> {
   }
 
   Widget buildProfileInfoRow(String title, String value, IconData icon) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      child: Material(
-        borderRadius: BorderRadius.circular(10),
-        elevation: 2.0,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: Colors.blue, // สีของกรอบ
-              width: 1.5, // ความหนาของกรอบ
+    return GestureDetector(
+      onTap: title == 'Location'
+          ? () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => LocationMapPage()),
+              )
+          : null,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        child: Material(
+          borderRadius: BorderRadius.circular(10),
+          elevation: 2.0,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: Colors.blue,
+                width: 1.5,
+              ),
             ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Icon(icon, color: Colors.black),
-                  const SizedBox(width: 20),
-                  Text(
-                    value,
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 18,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(icon, color: Colors.black),
+                    const SizedBox(width: 20),
+                    Text(
+                      value,
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 18,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              IconButton(
-                icon: const Icon(Icons.edit, color: Colors.blue),
-                onPressed: () {
-                  TextEditingController controller = title == 'Name'
-                      ? nameController
-                      : title == 'Phone'
-                          ? phoneController
-                          : emailController;
+                  ],
+                ),
+                Row(
+                  children: [
+                    if (title == 'Location')
+                      const Icon(Icons.arrow_forward_ios,
+                          color: Colors.grey, size: 16),
+                    IconButton(
+                      icon: const Icon(Icons.edit, color: Colors.blue),
+                      onPressed: () {
+                        TextEditingController controller = title == 'Name'
+                            ? nameController
+                            : title == 'Phone'
+                                ? phoneController
+                                : title == 'Location'
+                                    ? locationController
+                                    : emailController;
 
-                  showEditDialog(
-                    context: context,
-                    title: title,
-                    controller: controller,
-                  );
-                },
-              ),
-            ],
+                        showEditDialog(
+                          context: context,
+                          title: title,
+                          controller: controller,
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
